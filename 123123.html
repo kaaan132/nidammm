@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalbime Tıklar mısın? 💌</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: url("./123.jpg") no-repeat center center fixed;
+  background-size: cover;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  color: #d63384;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Hafif pembe saydam tül efekti */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 200, 220, 0.3);
+  z-index: 0;
+}
+
+#mainTitle {
+  font-size: 2.2em;
+  text-shadow: 1px 1px 3px #fff;
+  margin: 0;
+  position: absolute;
+  top: calc(50vh - 180px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.envelope-container {
+  position: relative;
+  width: 350px;
+  height: 220px;
+  cursor: pointer;
+  perspective: 1000px;
+  z-index: 2;
+}
+
+.envelope {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #ffc0cb;
+  border-radius: 15px;
+  transition: transform 0.5s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  overflow: visible;
+}
+
+.flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 175px solid transparent;
+  border-right: 175px solid transparent;
+  border-top: 110px solid #ff9fb5;
+  transition: transform 0.8s ease;
+  transform-origin: top;
+  z-index: 2;
+}
+
+.heart {
+  position: absolute;
+  top: 90px;
+  left: 145px;
+  font-size: 36px;
+  color: #ff1a75;
+  z-index: 3;
+  transition: transform 0.3s ease;
+}
+
+.message {
+  position: absolute;
+  top: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 220px;
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  border: 2px dashed #ff80a0;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: all 1s ease;
+  z-index: 1;
+  font-size: 1.05em;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ffb6c1 #ffe6f0;
+}
+
+.open .flap { transform: rotateX(180deg); }
+.open .heart { transform: scale(1.5) rotate(-10deg); }
+.open .message { opacity: 1; top: 140px; } 
+
+.heart-fly, .spark {
+  position: fixed;
+  pointer-events: none;
+  animation: fly linear forwards;
+  z-index: 10;
+}
+
+.heart-fly { 
+  filter: drop-shadow(0 0 4px #fff);
+  text-shadow: 0 0 4px #fff;
+}
+
+.poem {
+  position: absolute;
+  background: rgba(255,255,255,0.85);
+  border-radius: 15px;
+  padding: 15px 20px;
+  width: 230px;
+  font-size: 0.95em;
+  color: #d63384;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  opacity: 0;
+  animation: fadeIn 2s ease forwards;
+  white-space: pre-line;
+  text-align: center;
+  font-weight: bold;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-20px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fly {
+  0% { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--x,0), var(--y,-700px)) rotate(var(--r,360deg)) scale(var(--s,1.2)); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<h1 id="mainTitle">Kalbime tıklar mısın?</h1>
+
+<div class="envelope-container" id="envelopeContainer">
+  <div class="envelope">
+    <div class="flap"></div>
+    <div class="heart">❤️</div>
+    <div class="message" id="messageBox">
+      <h3>Canım Nida...</h3>
+      <p>
+        Kalbimin en güzel köşesinde hep sen varsın.  
+        Bazen kelimeler yetersiz kalıyor ama hislerim hep aynı:  
+        Seni incittiysem, inan bana, bu kalbimin en derin yerinden özür dilerim.  
+        Sensiz geçen her saniye, ömrümden bir parça eksiliyor.  
+        Gülüşün, sesin, adın — hepsi hayatımın melodisi.  
+        Seni seviyorum, Nida. Sonsuza dek 💖
+      </p>
+    </div>
+  </div>
+</div>
+
+<audio id="bgMusic" loop>
+  <source src="muzik.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="pianoSound" src="https://cdn.pixabay.com/download/audio/2021/09/30/audio_9d35a9f25a.mp3?filename=piano-note-5-103005.mp3"></audio>
+
+<script>
+const container = document.getElementById("envelopeContainer");
+const pianoSound = document.getElementById("pianoSound");
+const bgMusic = document.getElementById("bgMusic");
+let heartsInterval;
+let poemsCreated = false;
+
+document.body.addEventListener("click", () => {
+  bgMusic.volume = 0;
+  bgMusic.play().then(() => {
+    let v = 0;
+    const fade = setInterval(() => {
+      v += 0.02;
+      if (v >= 1) { clearInterval(fade); v = 1; }
+      bgMusic.volume = v;
+    }, 200);
+  }).catch(()=>{});
+}, { once: true });
+
+container.addEventListener("click", async () => {
+  const envelope = container.querySelector(".envelope");
+  envelope.classList.toggle("open");
+
+  try { 
+    pianoSound.currentTime = 0;
+    await pianoSound.play();
+  } catch(e) { console.log("Ses çalınamadı:", e); }
+
+  if (envelope.classList.contains("open")) {
+    if (!poemsCreated) {
+      createPoems();
+      poemsCreated = true;
+    }
+    heartsInterval = setInterval(() => {
+      const count = Math.floor(Math.random()*4) + 3;
+      for (let i=0; i<count; i++) createHeart();
+    }, 150);
+  } else {
+    clearInterval(heartsInterval);
+  }
+});
+
+function createPoems() {
+  const poems = [
+    "🌹 **N**azlı bir gül gibi açtın kalbimde,\n**İ**çimde bir yıldız gibi parladın sen.\n**D**okununca ruhuma, hayat buldu her şey,\n**A**şkınla tamamlandı benliğimdeki eksik renkler.",
+    "💞 **N**e zaman baksam gökyüzüne,\n**İ**smini yazar buluyorum bulutlara.\n**D**algalar bile fısıldıyor adını,\n**A**şkla doluyor kalbim sana dair her hatırada.",
+    "🌸 **N**efesim sensin, varlığın huzurum,\n**İ**çimde yankılanır sevdanın sesi.\n**D**uygularımın dili oldun artık,\n**A**nlam kazandı her şey seninle, sevgilim.",
+    "💖 **N**asıl ki gün doğarsa umutla,\n**İ**çimde her sabah seninle başlar.\n**D**okununca kalbime isminin harfi,\n**A**şkla dolup taşar bütün dünyam.",
+    "🌷 **N**arin bir tebessüm gibi dokundun ruhuma,\n**İ**çimde kelebekler uçuştu seninle.\n**D**ertler bile güzelleşti gülüşünle,\n**A**şkla yeniden doğdum, seninle Nida.",
+    "💌 **N**asıl anlatsam bilmem, bir mucizesin,\n**İ**çimde çiçek açan bir baharsın.\n**D**aima kalbimin en güzel yerindesin,\n**A**şkla anıyorum seni her nefeste.",
+    "🌺 **N**e kadar zaman geçerse geçsin,\n**İ**çimde hep sen varsın.\n**D**oğduğumdan beri aradığım huzur,\n**A**dında saklı, Nida’m."
+  ];
+
+  // Zarfın etrafını saran konumlar
+  const positions = [
+    { top: "5%", left: "50%", transform: "translateX(-50%)" },    // üstte
+    { top: "25%", left: "15%" },                                   // sol üst
+    { top: "45%", left: "5%" },                                    // sol
+    { top: "65%", left: "15%" },                                   // sol alt
+    { top: "80%", left: "50%", transform: "translateX(-50%)" },    // altta
+    { top: "25%", right: "15%" },                                  // sağ üst
+    { top: "55%", right: "10%" }                                   // sağ
+  ];
+
+  poems.forEach((text, i) => {
+    const div = document.createElement("div");
+    div.classList.add("poem");
+    div.style.top = positions[i].top;
+    if (positions[i].left) div.style.left = positions[i].left;
+    if (positions[i].right) div.style.right = positions[i].right;
+    if (positions[i].transform) div.style.transform = positions[i].transform;
+    div.innerHTML = text;
+    div.style.animationDelay = `${i * 0.7}s`;
+    document.body.appendChild(div);
+  });
+}
+
+function createHeart() {
+  const heart = document.createElement("div");
+  heart.classList.add("heart-fly");
+  heart.textContent = ["💖","❤️","💕","💞"][Math.floor(Math.random()*4)];
+  heart.style.left = Math.random() * window.innerWidth + "px";
+  heart.style.bottom = "0px"; 
+  const scale = (0.8 + Math.random()*0.7).toFixed(2);
+  heart.style.setProperty('--s', scale);
+  const xMovement = (Math.random()*400 - 200).toFixed(0) + "px";
+  const rotation = (Math.random()*360).toFixed(0) + "deg";
+  const yMovement = -(500 + Math.random()*300) + "px"; 
+  heart.style.setProperty('--x', xMovement);
+  heart.style.setProperty('--r', rotation);
+  heart.style.setProperty('--y', yMovement);
+  const duration = (3 + Math.random()*3).toFixed(1) + "s"; 
+  heart.style.animationDuration = duration;
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), parseFloat(duration)*1000);
+}
+</script>
+
+</body>
+</html>
